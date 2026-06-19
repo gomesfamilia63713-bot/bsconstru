@@ -685,21 +685,56 @@ window.confirmarPontoPublico = confirmarPontoPublico;
 // 1. Defina as funções primeiro
 function cadastrarUsuario(nome, cargo) {
     console.log("Cadastrando:", nome, cargo);
-    // ... seu código de push ...
 }
 
 function removerUsuario(id) {
     console.log("Removendo:", id);
-    // ... seu código de set ...
 }
 
 function switchTab(tabName) {
-    // ... seu código de abas ...
+  
 }
-
-// 2. Agora, exponha para o navegador (O "Pulo do Gato")
 window.cadastrarUsuario = cadastrarUsuario;
 window.removerUsuario = removerUsuario;
 window.switchTab = switchTab;
+window.confirmarPontoPublico = confirmarPontoPublico;
+window.solicitarPontoPublico = solicitarPontoPublico;
 
-console.log("Funções expostas com sucesso!");
+console.log("Sistema de funções exposto e pronto!");
+// --- FUNÇÕES DE LÓGICA (Firebase) ---
+
+async function cadastrarUsuario(nome, cargo) {
+    if (!nome || !cargo) {
+        alert("Preencha todos os campos!");
+        return;
+    }
+    const usuariosRef = ref(db, 'usuarios');
+    const novoUsuario = { nome, cargo, dataCadastro: new Date().toLocaleDateString() };
+    
+    await push(usuariosRef, novoUsuario);
+    alert("Usuário cadastrado com sucesso!");
+}
+
+async function removerUsuario(userId) {
+    if (confirm("Tem certeza que deseja excluir este usuário?")) {
+        const usuarioRef = ref(db, `usuarios/${userId}`);
+        await set(usuarioRef, null);
+        alert("Usuário removido!");
+    }
+}
+
+function switchTab(tabName) {
+    // Esconde todos os conteúdos
+    document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+    // Mostra apenas o selecionado
+    document.getElementById(tabName).style.display = 'block';
+}
+
+// --- EXPOSIÇÃO PARA O NAVEGADOR ---
+window.cadastrarUsuario = cadastrarUsuario;
+window.removerUsuario = removerUsuario;
+window.switchTab = switchTab;
+window.confirmarPontoPublico = confirmarPontoPublico;
+window.solicitarPontoPublico = solicitarPontoPublico;
+
+console.log("Sistema de funções exposto e pronto!");
