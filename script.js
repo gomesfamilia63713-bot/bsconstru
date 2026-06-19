@@ -1,5 +1,5 @@
 // ==========================================================================
-// CONSTRUCONTROL PRO v3.6 — CÓDIGO COMPLETO E CORRIGIDO
+// CONSTRUCONTROL PRO v3.6 — CÓDIGO COMPLETO
 // ==========================================================================
 
 let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios_v3')) || [
@@ -31,7 +31,6 @@ function salvarBD() {
     localStorage.setItem('cc_inventario_v3', JSON.stringify(DB_INVENTARIO));
 }
 
-// Inicialização Principal
 document.addEventListener("DOMContentLoaded", () => {
     atualizarSelects();
     verificarNomeDesteCelular(); 
@@ -44,12 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarPlanilhasEditaveis();
 });
 
-// Registro do Service Worker (PWA)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log('PWA: Service Worker ativo.'))
-            .catch((err) => console.log('Erro PWA:', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('PWA Error:', err));
     });
 }
 
@@ -60,9 +56,9 @@ function switchSubTab(categoria, subAba) {
 
 function adicionarItemInventario(categoria) {
     const p = categoria === 'materiais' ? 'mat' : 'ferr';
-    const nome = document.getElementById(`${p}-nome-input`).value.trim();
+    const nome = document.getElementById(p + '-nome-input').value.trim();
     if (!nome) return alert("Digite o nome.");
-    DB_INVENTARIO[categoria][subTabAtiva[categoria]].push({ id: Date.now(), nome, quantidade: 0, unidade: 'Und', data: new Date().toLocaleDateString('pt-BR') });
+    DB_INVENTARIO[categoria][subTabAtiva[categoria]].push({ id: Date.now(), nome: nome, quantidade: 0, unidade: 'Und', data: new Date().toLocaleDateString('pt-BR') });
     salvarBD();
     renderizarInventario(categoria);
 }
@@ -75,7 +71,7 @@ function removerItemInventario(categoria, sub, id) {
 
 function renderizarInventario(categoria) {
     const sub = subTabAtiva[categoria];
-    const tbody = document.getElementById(`tbody-${categoria}`);
+    const tbody = document.getElementById('tbody-' + categoria);
     if (!tbody) return;
     tbody.innerHTML = DB_INVENTARIO[categoria][sub].map(i => `
         <tr><td>${i.nome}</td><td>${i.quantidade}</td><td>${i.unidade}</td>
