@@ -1,7 +1,7 @@
 // ==========================================================================
 // CONSTRUCONTROL PRO v3.6 — CONTROLE INTEGRADO DE MATERIAIS E FERRAMENTAS
 // ==========================================================================
-
+alert("O script carregou!");
 let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios_v3')) || [
     { id: 1, nome: "Carlos Silva", cargo: "Pedreiro", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
     { id: 2, nome: "Marcos Souza", cargo: "Armador", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
