@@ -1,7 +1,21 @@
 // ==========================================================================
 // CONSTRUCONTROL PRO v3.6 — CONTROLE INTEGRADO DE MATERIAIS E FERRAMENTAS
 // ==========================================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyCvAp3uG-bIESbB8l9dA8HNubNZWGTPi3Y",
+    authDomain: "construcontrol-fa49a.firebaseapp.com",
+    projectId: "construcontrol-fa49a",
+    storageBucket: "construcontrol-fa49a.firebasestorage.app",
+    messagingSenderId: "906991631231",
+    appId: "1:906991631231:web:82cb3368d10b8fea84b84a",
+    databaseURL: "https://construcontrol-fa49a-default-rtdb.firebaseio.com/"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios_v3')) || [
     { id: 1, nome: "Carlos Silva", cargo: "Pedreiro", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
     { id: 2, nome: "Marcos Souza", cargo: "Armador", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
@@ -352,7 +366,25 @@ function atualizarSelects() {
     if (selectFiltroObra) selectFiltroObra.innerHTML = '<option value="">-- Escolha a Obra para Filtrar --</option>' + DB_OBRAS.map(o => `<option value="${o.id}">${o.nome}</option>`).join('');
 }
 
-function solicitarPontoPublico() {
+function solicitarPontoPublico() {async function gravarPontoNoFirebase() {
+    const nome = localStorage.getItem('cc_nome_proprio_dispositivo');
+    const db = getDatabase(); // Certifique-se que o db está acessível
+    const pontoRef = ref(db, 'registros_ponto');
+
+    const novoPonto = {
+        funcionario: nome,
+        data: new Date().toLocaleString(),
+        status: "registrado"
+    };
+
+    try {
+        await push(pontoRef, novoPonto);
+        alert("Ponto gravado com sucesso!");
+        document.getElementById('modal-ponto').style.display = 'none'; // Fecha o modal
+    } catch (e) {
+        alert("Erro ao gravar: " + e.message);
+    }
+}
     const nomeSelecionado = localStorage.getItem('cc_nome_proprio_dispositivo');
     if (!nomeSelecionado) { alert("Nome do dispositivo não configurado."); return; }
 
@@ -610,6 +642,28 @@ function carregarProjetoPlanta(event) {
     const status = document.getElementById('preview-projeto-status');
     const iframeViewer = document.getElementById('viewer-pdf-projeto');
     const imgViewer = document.getElementById('viewer-img-projeto');
+    // Cadastrar um novo funcionário
+async function cadastrarUsuario(nome, cargo) {
+    const usuariosRef = ref(db, 'usuarios');
+    const novoUsuario = {
+        nome: nome,
+        cargo: cargo,
+        dataCadastro: new Date().toLocaleDateString()
+    };
+    
+    // push gera um ID único automático para cada usuário
+    await push(usuariosRef, novoUsuario);
+    alert("Usuário cadastrado com sucesso!");
+}
+
+// Remover um usuário (precisamos do ID único dele no Firebase)
+async function removerUsuario(userId) {
+    if (confirm("Tem certeza que deseja excluir este usuário?")) {
+        const usuarioRef = ref(db, `usuarios/${userId}`);
+        await set(usuarioRef, null); // Setar como null remove do Firebase
+        alert("Usuário removido!");
+    }
+}
 
     if (!arquivo) return;
     iframeViewer.style.display = 'none'; imgViewer.style.display = 'none'; status.style.display = 'none';
@@ -620,4 +674,39 @@ function carregarProjetoPlanta(event) {
     } else if (arquivo.type.startsWith("image/")) {
         imgViewer.src = urlArquivo; imgViewer.style.display = 'block';
     }
+}console.log("Firebase cadastrado e pronto para uso!");
+window.solicitarPontoPublico = solicitarPontoPublico;
+window.limparNomeCelular = limparNomeCelular;
+window.lidarBotaoLogin = lidarBotaoLogin;
+window.confirmarPontoPublico = confirmarPontoPublico;
+// --- EXPOSIÇÃO PARA O HTML ---
+window.solicitarPontoPublico = solicitarPontoPublico;
+window.confirmarPontoPublico = confirmarPontoPublico;
+window.cadastrarUsuario = cadastrarUsuario;
+window.removerUsuario = removerUsuario;
+// Esta função monitora o banco e atualiza a div #lista-funcionarios
+function carregarListaFuncionarios() {
+    const listaRef = ref(db, 'usuarios');
+    
+    onValue(listaRef, (snapshot) => {
+        const data = snapshot.val();
+        const container = document.getElementById('lista-funcionarios');
+        
+        if (!container) return; // Se a div não existir, sai da função
+        
+        container.innerHTML = ""; // Limpa a lista antes de desenhar
+        
+        for (let id in data) {
+            const user = data[id];
+            container.innerHTML += `
+                <div class="card-funcionario">
+                    <span>${user.nome} - ${user.cargo}</span>
+                    <button onclick="removerUsuario('${id}')">Excluir</button>
+                </div>
+            `;
+        }
+    });
 }
+
+// Chame essa função uma vez quando a página carregar
+carregarListaFuncionarios();
