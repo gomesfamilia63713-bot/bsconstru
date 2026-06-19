@@ -680,6 +680,7 @@ window.limparNomeCelular = limparNomeCelular;
 window.lidarBotaoLogin = lidarBotaoLogin;
 window.confirmarPontoPublico = confirmarPontoPublico;
 // --- EXPOSIÇÃO PARA O HTML ---
+window.switchTab = switchTab;
 window.solicitarPontoPublico = solicitarPontoPublico;
 window.confirmarPontoPublico = confirmarPontoPublico;
 window.cadastrarUsuario = cadastrarUsuario;
