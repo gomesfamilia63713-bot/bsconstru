@@ -680,9 +680,9 @@ window.limparNomeCelular = limparNomeCelular;
 window.lidarBotaoLogin = lidarBotaoLogin;
 window.confirmarPontoPublico = confirmarPontoPublico;
 // --- EXPOSIÇÃO PARA O HTML ---
-window.switchTab = switchTab;
 window.solicitarPontoPublico = solicitarPontoPublico;
 window.confirmarPontoPublico = confirmarPontoPublico;
+window.switchTab = switchTab;
 window.cadastrarUsuario = cadastrarUsuario;
 window.removerUsuario = removerUsuario;
 // Esta função monitora o banco e atualiza a div #lista-funcionarios
