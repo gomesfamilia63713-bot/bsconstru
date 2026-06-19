@@ -682,32 +682,24 @@ window.confirmarPontoPublico = confirmarPontoPublico;
 // --- EXPOSIÇÃO PARA O HTML ---
 window.solicitarPontoPublico = solicitarPontoPublico;
 window.confirmarPontoPublico = confirmarPontoPublico;
-window.switchTab = switchTab;
-//window.cadastrarUsuario = cadastrarUsuario;
-window.removerUsuario = removerUsuario;
-// Esta função monitora o banco e atualiza a div #lista-funcionarios
-function carregarListaFuncionarios() {
-    const listaRef = ref(db, 'usuarios');
-    
-    onValue(listaRef, (snapshot) => {
-        const data = snapshot.val();
-        const container = document.getElementById('lista-funcionarios');
-        
-        if (!container) return; // Se a div não existir, sai da função
-        
-        container.innerHTML = ""; // Limpa a lista antes de desenhar
-        
-        for (let id in data) {
-            const user = data[id];
-            container.innerHTML += `
-                <div class="card-funcionario">
-                    <span>${user.nome} - ${user.cargo}</span>
-                    <button onclick="removerUsuario('${id}')">Excluir</button>
-                </div>
-            `;
-        }
-    });
+// 1. Defina as funções primeiro
+function cadastrarUsuario(nome, cargo) {
+    console.log("Cadastrando:", nome, cargo);
+    // ... seu código de push ...
 }
 
-// Chame essa função uma vez quando a página carregar
-carregarListaFuncionarios();
+function removerUsuario(id) {
+    console.log("Removendo:", id);
+    // ... seu código de set ...
+}
+
+function switchTab(tabName) {
+    // ... seu código de abas ...
+}
+
+// 2. Agora, exponha para o navegador (O "Pulo do Gato")
+window.cadastrarUsuario = cadastrarUsuario;
+window.removerUsuario = removerUsuario;
+window.switchTab = switchTab;
+
+console.log("Funções expostas com sucesso!");
