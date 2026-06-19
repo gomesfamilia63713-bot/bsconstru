@@ -683,7 +683,7 @@ window.confirmarPontoPublico = confirmarPontoPublico;
 window.solicitarPontoPublico = solicitarPontoPublico;
 window.confirmarPontoPublico = confirmarPontoPublico;
 window.switchTab = switchTab;
-window.cadastrarUsuario = cadastrarUsuario;
+//window.cadastrarUsuario = cadastrarUsuario;
 window.removerUsuario = removerUsuario;
 // Esta função monitora o banco e atualiza a div #lista-funcionarios
 function carregarListaFuncionarios() {
