@@ -183,7 +183,16 @@
             <button class="nav-btn" onclick="switchTab('aba-configuracoes-app')">
                 <i class="fa-solid fa-gear"></i> CONFIGURAÇÕES
             </button>
-        </div>
+        <div id="area-cadastro">
+    <input type="text" id="nome-funcionario" placeholder="Nome do Funcionário">
+    <input type="text" id="cargo-funcionario" placeholder="Cargo">
+    <button onclick="cadastrarUsuario(
+        document.getElementById('nome-funcionario').value, 
+        document.getElementById('cargo-funcionario').value
+    )">CADASTRAR</button>
+</div>
+
+<div id="lista-funcionarios">
     </aside>
 
     <main>
