@@ -456,7 +456,19 @@
                     <div class="form-group">
                         <label>Selecionar Foto (Galeria do Celular ou Computador):</label>
                         <input type="file" id="config-logo-file" accept="image/*" onchange="carregarLogoArquivoAdmin(event)">
-                    </div>
+                    <div id="aba-configuracoes-app" class="tab-content">
+    <div id="area-cadastro">
+        <h3>Cadastro de Equipe</h3>
+        <input type="text" id="nome-funcionario" placeholder="Nome">
+        <input type="text" id="cargo-funcionario" placeholder="Cargo">
+        <button onclick="cadastrarUsuario(
+            document.getElementById('nome-funcionario').value, 
+            document.getElementById('cargo-funcionario').value
+        )">CADASTRAR</button>
+    </div>
+
+    <div id="lista-funcionarios"></div>
+</div>
                 </div>
                 <button class="btn-tool" style="margin-top: 20px;" onclick="restaurarLogoPadrao()">
                     <i class="fa-solid fa-rotate-left"></i> Restaurar Logo Padrão
