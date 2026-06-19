@@ -324,7 +324,7 @@ function lidarBotaoLogin() {
 
     if (!isAdminLogado) {
         let senha = prompt("Digite a senha do Administrador:");
-        if (senha && senha.toLowerCase().trim() === "admin") {
+        if (senha && senha.toLowerCase().trim() === "producaobs") {
             isAdminLogado = true;
             btn.innerHTML = '<i class="fa-solid fa-unlock"></i> SAIR';
             btn.style.backgroundColor = '#22c55e';
@@ -373,7 +373,7 @@ function solicitarPontoPublico() {
         navigator.geolocation.getCurrentPosition((pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-            gpsStatus.innerHTML = `📍 Localização encontrada. Consultando CEP...`;
+            gpsStatus.innerHTML = ` Consultando CEP,aguarde...`;
 
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {
                 headers: { 'User-Agent': 'ControleBS/3.6' }
