@@ -619,12 +619,11 @@ function carregarProjetoPlanta(event) {
         iframeViewer.src = urlArquivo; iframeViewer.style.display = 'block';
     } else if (arquivo.type.startsWith("image/")) {
         imgViewer.src = urlArquivo; imgViewer.style.display = 'block';```javascript
-   if ('serviceWorker' in navigator) {
-       window.addEventListener('load', () => {
-           navigator.serviceWorker.register('./sw.js')
-               .then(() => console.log('Service Worker registrado com sucesso!'))
-               .catch((err) => console.log('Erro ao registrar Service Worker:', err));
-       });
-   }
-    }
+  // Registro do Service Worker (Blinded para PWA)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then((reg) => console.log('Service Worker registrado com sucesso:', reg.scope))
+            .catch((err) => console.log('Erro ao registrar Service Worker:', err));
+    });
 }
