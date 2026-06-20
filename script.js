@@ -1,5 +1,5 @@
 // ==========================================================================
-// CONSTRUCONTROL PRO v3.6 — CONTROLE INTEGRADO DE MATERIAIS E FERRAMENTAS
+// CONSTRUCONTROL PRO v3.5 — ARMAZENAMENTO LOCAL DE USUÁRIO E REGISTRO LIVRE
 // ==========================================================================
 
 let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios_v3')) || [
@@ -15,23 +15,10 @@ let DB_OBRAS = JSON.parse(localStorage.getItem('cc_obras_v3')) || [
 
 let DB_PRODUCAO = JSON.parse(localStorage.getItem('cc_producao_v3')) || [];
 
-// Banco de dados para a estrutura de sub-abas de Materiais e Ferramentas
-let DB_INVENTARIO = JSON.parse(localStorage.getItem('cc_inventario_v3')) || {
-    materiais: { estoque: [], casa: [], outro: [] },
-    ferramentas: { estoque: [], casa: [], outro: [] }
-};
-
-// Estados ativos das sub-abas internas
-let subTabAtiva = {
-    materiais: 'estoque',
-    ferramentas: 'estoque'
-};
-
 function salvarBD() {
     localStorage.setItem('cc_funcionarios_v3', JSON.stringify(DB_FUNCIONARIOS));
     localStorage.setItem('cc_obras_v3', JSON.stringify(DB_OBRAS));
     localStorage.setItem('cc_producao_v3', JSON.stringify(DB_PRODUCAO));
-    localStorage.setItem('cc_inventario_v3', JSON.stringify(DB_INVENTARIO));
 }
 
 let isAdminLogado = false;
@@ -45,102 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderizarPainelGeral();
     renderizarFichasEfetivo();
     renderizarProducaoPorObra();
-    renderizarInventario('materiais');
-    renderizarInventario('ferramentas');
     configurarPlanilhasEditaveis();
 });
-
-// ==========================================================================
-// CONTROLADORES DE SUB-ABAS (MATERIAIS E FERRAMENTAS)
-// ==========================================================================
-
-function switchSubTab(categoria, subAba) {
-    subTabAtiva[categoria] = subAba;
-    
-    // Atualiza o estado visual dos botões de sub-aba
-    const container = document.querySelector(`#aba-${categoria} .sub-tabs-container`);
-    if(container) {
-        container.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
-        const btnAlvo = Array.from(container.querySelectorAll('.sub-tab-btn')).find(btn => btn.getAttribute('onclick').includes(`'${subAba}'`));
-        if (btnAlvo) btnAlvo.classList.add('active');
-    }
-
-    renderizarInventario(categoria);
-}
-
-function adicionarItemInventario(categoria) {
-    const prefixo = categoria === 'materiais' ? 'mat' : 'ferr';
-    const inputNome = document.getElementById(`${prefixo}-nome-input`);
-    const inputQtd = document.getElementById(`${prefixo}-qtd-input`);
-    const inputUnid = document.getElementById(`${prefixo}-unid-input`);
-
-    const nome = inputNome.value.trim();
-    const qtd = parseInt(inputQtd.value) || 0;
-    const unid = inputUnid.value.trim() || 'Und';
-
-    if (!nome) {
-        alert("Digite o nome da especificação para cadastrar.");
-        return;
-    }
-
-    const sub = subTabAtiva[categoria];
-    const novoItem = {
-        id: Date.now(),
-        nome: nome,
-        quantidade: qtd,
-        unidade: unid,
-        data: new Date().toLocaleDateString('pt-BR')
-    };
-
-    DB_INVENTARIO[categoria][sub].push(novoItem);
-    salvarBD();
-    renderizarInventario(categoria);
-
-    // Limpa inputs
-    inputNome.value = '';
-    inputQtd.value = '';
-    inputUnid.value = '';
-}
-
-function removerItemInventario(categoria, sub, idItem) {
-    if (confirm("Remover este registro definitivamente do sistema?")) {
-        DB_INVENTARIO[categoria][sub] = DB_INVENTARIO[categoria][sub].filter(item => item.id !== idItem);
-        salvarBD();
-        renderizarInventario(categoria);
-    }
-}
-
-function renderizarInventario(categoria) {
-    const sub = subTabAtiva[categoria];
-    const tbody = document.getElementById(`tbody-${categoria}`);
-    if (!tbody) return;
-
-    const listaItens = DB_INVENTARIO[categoria][sub] || [];
-
-    if (listaItens.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); font-size: 13px;">Nenhum item cadastrado nesta sub-aba (${sub.toUpperCase()}).</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = listaItens.map(item => `
-        <tr data-id="${item.id}" data-cat="${categoria}" data-sub="${sub}">
-            <td contenteditable="true"><strong>${item.nome}</strong></td>
-            <td contenteditable="true" style="color:var(--accent-orange); font-weight:700;">${item.quantidade}</td>
-            <td contenteditable="true">${item.unidade}</td>
-            <td><span style="font-size:12px; color:var(--text-muted);">${item.data}</span></td>
-            <td style="text-align:center;">
-                <button class="btn-delete-row" onclick="removerItemInventario('${categoria}', '${sub}', ${item.id})">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-
-// ==========================================================================
-// FUNÇÕES HISTÓRICAS DO SISTEMA
-// ==========================================================================
 
 function verificarLogoConfigurado() {
     const logoSalvo = localStorage.getItem('cc_app_logo_customizado');
@@ -164,12 +57,14 @@ function salvarLogoAdmin(url) {
     verificarLogoConfigurado();
 }
 
+// Função modificada para ler qualquer imagem da galeria/armazenamento local
 function carregarLogoArquivoAdmin(event) {
     const arquivo = event.target.files[0];
     if (!arquivo) return;
 
     const reader = new FileReader();
     reader.onload = function(e) {
+        // Converte o arquivo local em String Base64 permanente
         localStorage.setItem('cc_app_logo_customizado', e.target.result);
         verificarLogoConfigurado();
         alert("Imagem carregada da galeria e aplicada com sucesso!");
@@ -251,17 +146,14 @@ function exportarTabelaParaExcel(idTabela, nomeArquivo) {
     const linhas = tabela.querySelectorAll("tr");
 
     linhas.forEach(linha => {
-        const colunas = linha.querySelectorAll("th, td");
+        const colunas = inline_obterColunas(linha);
         let dadosLinha = [];
-        colunas.forEach((coluna, index) => {
-            // Ignorar a última coluna de ações/exclusão na exportação
-            if (linha.parentElement.tagName === 'TBODY' && index === colunas.length - 1 && coluna.querySelector('.btn-delete-row')) return;
-            
+        colunas.forEach(coluna => {
             let texto = coluna.innerText.replace(/"/g, '""').trim();
             if (texto.includes("Inspecionar Histórico")) texto = texto.replace("Inspecionar Histórico →", "").trim();
             dadosLinha.push('"' + texto + '"');
         });
-        if(dadosLinha.length > 0) conteudoCSV += dadosLinha.join(";") + "\r\n"; 
+        conteudoCSV += dadosLinha.join(";") + "\r\n"; 
     });
 
     const blob = new Blob([conteudoCSV], { type: "text/csv;charset=utf-8;" });
@@ -274,45 +166,38 @@ function exportarTabelaParaExcel(idTabela, nomeArquivo) {
     document.body.removeChild(link);
 }
 
+function inline_obterColunas(linha) {
+    return inline_obterColunasElement = linha.querySelectorAll("th, td");
+}
+
+function configuringPlanilhasEditaveisHelper(celula, tabela) {
+    const linha = celula.parentElement;
+    const idFuncionario = linha.getAttribute('data-id');
+    const colunaIndex = celula.cellIndex;
+    const novoValor = celula.innerText.trim();
+
+    if (idFuncionario) {
+        const func = DB_FUNCIONARIOS.find(f => f.id == idFuncionario);
+        if (func) {
+            if (colunaIndex === 0) func.nome = novoValor;
+            if (colunaIndex === 1) func.cargo = novoValor;
+            if (colunaIndex === 3 || (colunaIndex === 2 && tabela.id === "tabela-fichas-efetivo")) {
+                func.frequencia = parseInt(novoValor) || 0;
+            }
+            salvarBD();
+            renderizarPainelGeral();
+            renderizarFichasEfetivo();
+            renderizarProducaoPorObra();
+        }
+    }
+}
+
 function configurarPlanilhasEditaveis() {
     document.querySelectorAll('table').forEach(tabela => {
         tabela.addEventListener('blur', (evento) => {
             const celula = evento.target;
             if (celula.tagName === 'TD' && celula.hasAttribute('contenteditable')) {
-                const linha = celula.parentElement;
-                const id = linha.getAttribute('data-id');
-                const cat = linha.getAttribute('data-cat');
-                const sub = linha.getAttribute('data-sub');
-                const colunaIndex = celula.cellIndex;
-                const novoValor = celula.innerText.trim();
-
-                // Tratamento específico para as novas tabelas de materiais/ferramentas editáveis na hora
-                if (cat && sub && id) {
-                    const item = DB_INVENTARIO[cat][sub].find(i => i.id == id);
-                    if (item) {
-                        if (colunaIndex === 0) item.nome = novoValor;
-                        if (colunaIndex === 1) item.quantidade = parseInt(novoValor) || 0;
-                        if (colunaIndex === 2) item.unidade = novoValor;
-                        salvarBD();
-                    }
-                    return;
-                }
-
-                // Tratamento antigo de funcionários
-                if (id) {
-                    const func = DB_FUNCIONARIOS.find(f => f.id == id);
-                    if (func) {
-                        if (colunaIndex === 0) func.nome = novoValor;
-                        if (colunaIndex === 1) func.cargo = novoValor;
-                        if (colunaIndex === 3 || (colunaIndex === 2 && tabela.id === "tabela-fichas-efetivo")) {
-                            func.frequencia = parseInt(novoValor) || 0;
-                        }
-                        salvarBD();
-                        renderizarPainelGeral();
-                        renderizarFichasEfetivo();
-                        renderizarProducaoPorObra();
-                    }
-                }
+                configuringPlanilhasEditaveisHelper(celula, tabela);
             }
         }, true);
     });
@@ -373,10 +258,11 @@ function solicitarPontoPublico() {
         navigator.geolocation.getCurrentPosition((pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
+            
             gpsStatus.innerHTML = `📍 Localização encontrada. Consultando CEP...`;
 
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {
-                headers: { 'User-Agent': 'ControleBS/3.6' }
+                headers: { 'User-Agent': 'ControleBS/3.5' }
             })
             .then(res => res.json())
             .then(dados => {
@@ -411,7 +297,8 @@ function confirmarPontoPublico() {
     const video = document.getElementById('ponto-video');
     
     const canvas = document.createElement('canvas');
-    canvas.width = 640; canvas.height = 480;
+    canvas.width = 640; 
+    canvas.height = 480;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, 640, 480);
 
@@ -471,4 +358,109 @@ function renderizarPainelGeral() {
     if (document.getElementById('card-total-prod')) document.getElementById('card-total-prod').innerText = DB_PRODUCAO.length;
 
     const tbody = document.getElementById('tbody-geral');
-    if (!tbody)
+    if (!tbody) return;
+
+    tbody.innerHTML = DB_FUNCIONARIOS.map(f => {
+        const obraObj = DB_OBRAS.find(o => o.id == f.obraId);
+        return `
+            <tr data-id="${f.id}">
+                <td contenteditable="true"><strong>${f.nome}</strong></td>
+                <td contenteditable="true">${f.cargo}</td>
+                <td><span class="badge-obra">${obraObj ? obraObj.nome : "Não Alocado"}</span></td>
+                <td contenteditable="true" style="color: var(--neon-green); font-weight:bold;">${f.frequencia}</td>
+                <td><span style="color: var(--accent-orange); font-size:13px;">${f.ultimaProd}</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderizarFichasEfetivo() {
+    const tbody = document.getElementById('tbody-fichas');
+    if (!tbody) return;
+
+    tbody.innerHTML = DB_FUNCIONARIOS.map(f => `
+        <tr class="row-clicavel" data-id="${f.id}" onclick="abrirFichaOperario(${f.id})">
+            <td><i class="fa-solid fa-id-badge" style="color:var(--accent-orange); margin-right:8px;"></i> <strong>${f.nome}</strong></td>
+            <td>${f.cargo}</td>
+            <td>${f.frequencia} batidas</td>
+            <td><span style="color:var(--neon-blue); font-size:13px;">Inspecionar Histórico &rarr;</span></td>
+        </tr>
+    `).join('');
+}
+
+function renderizarProducaoPorObra() {
+    const idObraFiltrada = document.getElementById('filtro-obra-analise').value;
+    const titulo = document.getElementById('titulo-obra-filtrada');
+    const tbody = document.getElementById('tbody-por-obra');
+    if (!tbody) return;
+
+    if (!idObraFiltrada) {
+        titulo.innerText = "Selecione uma obra no campo acima";
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum canteiro selecionado para filtragem.</td></tr>`;
+        return;
+    }
+
+    const obraSelecionada = DB_OBRAS.find(o => o.id == idObraFiltrada);
+    titulo.innerText = `Frente de Trabalho: ${obraSelecionada ? obraSelecionada.nome : ''}`;
+    const operariosFiltrados = DB_FUNCIONARIOS.filter(f => f.obraId == idObraFiltrada);
+
+    tbody.innerHTML = operariosFiltrados.map(f => `
+        <tr data-id="${f.id}">
+            <td><strong>${f.nome}</strong></td>
+            <td>${f.cargo}</td>
+            <td>${f.frequencia} Batidas</td>
+            <td>${f.ultimaProd}</td>
+        </tr>
+    `).join('');
+}
+
+function abrirFichaOperario(id) {
+    const func = DB_FUNCIONARIOS.find(f => f.id == id);
+    if (!func) return;
+
+    const obraObj = DB_OBRAS.find(o => o.id == func.obraId);
+    const todasBatidas = DB_PRODUCAO.filter(p => p.funcionario.toLowerCase().trim() === func.nome.toLowerCase().trim());
+
+    document.getElementById('ficha-nome-titulo').innerText = `Ficha Cadastral: ${func.nome}`;
+    const imgElement = document.getElementById('ficha-foto-img');
+    const txtSemFoto = document.getElementById('ficha-sem-foto-txt');
+
+    if (func.fotoRecente) {
+        imgElement.src = func.fotoRecente; imgElement.style.display = 'block'; txtSemFoto.style.display = 'none';
+    } else {
+        imgElement.style.display = 'none'; txtSemFoto.style.display = 'block';
+    }
+
+    document.getElementById('ficha-dados-texto').innerHTML = `
+        <p><strong>Profissão/Cargo:</strong> ${func.cargo}</p>
+        <p><strong>Canteiro Alocado:</strong> ${obraObj ? obraObj.nome : 'Nenhum'}</p>
+        <p><strong>Endereço da Obra:</strong> ${obraObj ? obraObj.local : '-'}</p>
+        <p><strong>Total de Registros:</strong> ${func.frequencia} pontos batidos</p>
+    `;
+
+    const historicoBox = document.getElementById('ficha-historico-lista');
+    if (todasBatidas.length === 0) {
+        historicoBox.innerHTML = `<div style="color:var(--text-muted); font-size:12px; padding:5px;">Nenhum horário salvo.</div>`;
+    } else {
+        historicoBox.innerHTML = [...todasBatidas].reverse().map(b => `
+            <div class="historico-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
+                <span><i class="fa-regular fa-clock" style="color:var(--accent-orange); margin-right:5px;"></i> ${b.volume}</span>
+                <span style="color:var(--text-muted); font-size:11px;">${b.data.split(' ')[0]}</span>
+            </div>
+        `).join('');
+    }
+    document.getElementById('modal-ficha').style.display = 'flex';
+}
+
+function fecharModalFicha() {
+    document.getElementById('modal-ficha').style.display = 'none';
+}
+
+document.getElementById('form-producao')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nomeFunc = document.getElementById('prod-funcionario').value;
+    const volumeProd = document.getElementById('prod-quantidade').value;
+    const funcionario = DB_FUNCIONARIOS.find(f => f.nome === nomeFunc);
+    if (funcionario) {
+        funcionario.ultimaProd = volumeProd;
+        DB_PRODUCAO.push({ funcionario: nomeFunc,
