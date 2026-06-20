@@ -1,21 +1,7 @@
 // ==========================================================================
 // CONSTRUCONTROL PRO v3.6 — CONTROLE INTEGRADO DE MATERIAIS E FERRAMENTAS
 // ==========================================================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCvAp3uG-bIESbB8l9dA8HNubNZWGTPi3Y",
-    authDomain: "construcontrol-fa49a.firebaseapp.com",
-    projectId: "construcontrol-fa49a",
-    storageBucket: "construcontrol-fa49a.firebasestorage.app",
-    messagingSenderId: "906991631231",
-    appId: "1:906991631231:web:82cb3368d10b8fea84b84a",
-    databaseURL: "https://construcontrol-fa49a-default-rtdb.firebaseio.com/"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
 let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios_v3')) || [
     { id: 1, nome: "Carlos Silva", cargo: "Pedreiro", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
     { id: 2, nome: "Marcos Souza", cargo: "Armador", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
@@ -338,7 +324,7 @@ function lidarBotaoLogin() {
 
     if (!isAdminLogado) {
         let senha = prompt("Digite a senha do Administrador:");
-        if (senha && senha.toLowerCase().trim() === "producaobs") {
+        if (senha && senha.toLowerCase().trim() === "admin") {
             isAdminLogado = true;
             btn.innerHTML = '<i class="fa-solid fa-unlock"></i> SAIR';
             btn.style.backgroundColor = '#22c55e';
@@ -366,25 +352,7 @@ function atualizarSelects() {
     if (selectFiltroObra) selectFiltroObra.innerHTML = '<option value="">-- Escolha a Obra para Filtrar --</option>' + DB_OBRAS.map(o => `<option value="${o.id}">${o.nome}</option>`).join('');
 }
 
-function solicitarPontoPublico() {async function gravarPontoNoFirebase() {
-    const nome = localStorage.getItem('cc_nome_proprio_dispositivo');
-    const db = getDatabase(); // Certifique-se que o db está acessível
-    const pontoRef = ref(db, 'registros_ponto');
-
-    const novoPonto = {
-        funcionario: nome,
-        data: new Date().toLocaleString(),
-        status: "registrado"
-    };
-
-    try {
-        await push(pontoRef, novoPonto);
-        alert("Ponto gravado com sucesso!");
-        document.getElementById('modal-ponto').style.display = 'none'; // Fecha o modal
-    } catch (e) {
-        alert("Erro ao gravar: " + e.message);
-    }
-}
+function solicitarPontoPublico() {
     const nomeSelecionado = localStorage.getItem('cc_nome_proprio_dispositivo');
     if (!nomeSelecionado) { alert("Nome do dispositivo não configurado."); return; }
 
@@ -405,7 +373,7 @@ function solicitarPontoPublico() {async function gravarPontoNoFirebase() {
         navigator.geolocation.getCurrentPosition((pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-            gpsStatus.innerHTML = ` Consultando CEP,aguarde...`;
+            gpsStatus.innerHTML = `📍 Localização encontrada. Consultando CEP...`;
 
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {
                 headers: { 'User-Agent': 'ControleBS/3.6' }
@@ -503,174 +471,4 @@ function renderizarPainelGeral() {
     if (document.getElementById('card-total-prod')) document.getElementById('card-total-prod').innerText = DB_PRODUCAO.length;
 
     const tbody = document.getElementById('tbody-geral');
-    if (!tbody) return;
-
-    tbody.innerHTML = DB_FUNCIONARIOS.map(f => {
-        const obraObj = DB_OBRAS.find(o => o.id == f.obraId);
-        return `
-            <tr data-id="${f.id}">
-                <td contenteditable="true"><strong>${f.nome}</strong></td>
-                <td contenteditable="true">${f.cargo}</td>
-                <td><span class="badge-obra">${obraObj ? obraObj.nome : "Não Alocado"}</span></td>
-                <td contenteditable="true" style="color: var(--neon-green); font-weight:bold;">${f.frequencia}</td>
-                <td><span style="color: var(--accent-orange); font-size:13px;">${f.ultimaProd}</span></td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function renderizarFichasEfetivo() {
-    const tbody = document.getElementById('tbody-fichas');
-    if (!tbody) return;
-
-    tbody.innerHTML = DB_FUNCIONARIOS.map(f => `
-        <tr class="row-clicavel" data-id="${f.id}" onclick="abrirFichaOperario(${f.id})">
-            <td><i class="fa-solid fa-id-badge" style="color:var(--accent-orange); margin-right:8px;"></i> <strong>${f.nome}</strong></td>
-            <td>${f.cargo}</td>
-            <td>${f.frequencia} batidas</td>
-            <td><span style="color:var(--neon-blue); font-size:13px;">Inspecionar Histórico &rarr;</span></td>
-        </tr>
-    `).join('');
-}
-
-function renderizarProducaoPorObra() {
-    const idObraFiltrada = document.getElementById('filtro-obra-analise').value;
-    const titulo = document.getElementById('titulo-obra-filtrada');
-    const tbody = document.getElementById('tbody-por-obra');
-    if (!tbody) return;
-
-    if (!idObraFiltrada) {
-        titulo.innerText = "Selecione uma obra no campo acima";
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum canteiro selecionado para filtragem.</td></tr>`;
-        return;
-    }
-
-    const obraSelecionada = DB_OBRAS.find(o => o.id == idObraFiltrada);
-    titulo.innerText = `Frente de Trabalho: ${obraSelecionada ? obraSelecionada.nome : ''}`;
-    const operariosFiltrados = DB_FUNCIONARIOS.filter(f => f.obraId == idObraFiltrada);
-
-    tbody.innerHTML = operariosFiltrados.map(f => `
-        <tr data-id="${f.id}">
-            <td><strong>${f.nome}</strong></td>
-            <td>${f.cargo}</td>
-            <td>${f.frequencia} Batidas</td>
-            <td>${f.ultimaProd}</td>
-        </tr>
-    `).join('');
-}
-
-function abrirFichaOperario(id) {
-    const func = DB_FUNCIONARIOS.find(f => f.id == id);
-    if (!func) return;
-
-    const obraObj = DB_OBRAS.find(o => o.id == func.obraId);
-    const todasBatidas = DB_PRODUCAO.filter(p => p.funcionario.toLowerCase().trim() === func.nome.toLowerCase().trim());
-
-    document.getElementById('ficha-nome-titulo').innerText = `Ficha Cadastral: ${func.nome}`;
-    const imgElement = document.getElementById('ficha-foto-img');
-    const txtSemFoto = document.getElementById('ficha-sem-foto-txt');
-
-    if (func.fotoRecente) {
-        imgElement.src = func.fotoRecente; imgElement.style.display = 'block'; txtSemFoto.style.display = 'none';
-    } else {
-        imgElement.style.display = 'none'; txtSemFoto.style.display = 'block';
-    }
-
-    document.getElementById('ficha-dados-texto').innerHTML = `
-        <p><strong>Profissão/Cargo:</strong> ${func.cargo}</p>
-        <p><strong>Canteiro Alocado:</strong> ${obraObj ? obraObj.nome : 'Nenhum'}</p>
-        <p><strong>Endereço da Obra:</strong> ${obraObj ? obraObj.local : '-'}</p>
-        <p><strong>Total de Registros:</strong> ${func.frequencia} pontos batidos</p>
-    `;
-
-    const historicoBox = document.getElementById('ficha-historico-lista');
-    if (todasBatidas.length === 0) {
-        historicoBox.innerHTML = `<div style="color:var(--text-muted); font-size:12px; padding:5px;">Nenhum horário salvo.</div>`;
-    } else {
-        historicoBox.innerHTML = [...todasBatidas].reverse().map(b => `
-            <div class="historico-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
-                <span><i class="fa-regular fa-clock" style="color:var(--accent-orange); margin-right:5px;"></i> ${b.volume}</span>
-                <span style="color:var(--text-muted); font-size:11px;">${b.data.split(' ')[0]}</span>
-            </div>
-        `).join('');
-    }
-    document.getElementById('modal-ficha').style.display = 'flex';
-}
-
-function fecharModalFicha() {
-    document.getElementById('modal-ficha').style.display = 'none';
-}
-
-document.getElementById('form-producao')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nomeFunc = document.getElementById('prod-funcionario').value;
-    const volumeProd = document.getElementById('prod-quantidade').value;
-    const funcionario = DB_FUNCIONARIOS.find(f => f.nome === nomeFunc);
-    if (funcionario) {
-        funcionario.ultimaProd = volumeProd;
-        DB_PRODUCAO.push({ funcionario: nomeFunc, volume: `Produção: ${volumeProd}`, data: new Date().toLocaleString('pt-BR'), obraId: funcionario.obraId });
-        salvarBD(); renderizarPainelGeral(); renderizarProducaoPorObra();
-        e.target.reset(); alert(`Produção registrada!`);
-    }
-});
-
-document.getElementById('form-add-funcionario')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nome = document.getElementById('func-nome').value;
-    const cargo = document.getElementById('func-cargo').value;
-    const obraId = parseInt(document.getElementById('func-obra-inicial').value);
-    const novoId = DB_FUNCIONARIOS.length ? Math.max(...DB_FUNCIONARIOS.map(f => f.id)) + 1 : 1;
-    
-    DB_FUNCIONARIOS.push({ id: novoId, nome, cargo, obraId, frequencia: 0, ultimaProd: "-", fotoRecente: "" });
-    salvarBD(); atualizarSelects(); renderizarPainelGeral(); renderizarFichasEfetivo();
-    e.target.reset(); alert(`Operário cadastrado pelo admin!`);
-});
-
-document.getElementById('form-add-obra')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nome = document.getElementById('obra-nome').value;
-    const local = document.getElementById('obra-local').value;
-    const novoId = DB_OBRAS.length ? Math.max(...DB_OBRAS.map(o => o.id)) + 1 : 1;
-    
-    DB_OBRAS.push({ id: novoId, nome, local });
-    salvarBD(); atualizarSelects(); renderizarPainelGeral();
-    e.target.reset(); alert(`Canteiro integrado!`);
-});
-
-function carregarProjetoPlanta(event) {
-    const arquivo = event.target.files[0];
-    const status = document.getElementById('preview-projeto-status');
-    const iframeViewer = document.getElementById('viewer-pdf-projeto');
-    const imgViewer = document.getElementById('viewer-img-projeto');
-    // Cadastrar um novo funcionário
-async function cadastrarUsuario(nome, cargo) {
-    const usuariosRef = ref(db, 'usuarios');
-    const novoUsuario = {
-        nome: nome,
-        cargo: cargo,
-        dataCadastro: new Date().toLocaleDateString()
-    };
-    
-    // push gera um ID único automático para cada usuário
-    await push(usuariosRef, novoUsuario);
-    alert("Usuário cadastrado com sucesso!");
-}
-
-// Remover um usuário (precisamos do ID único dele no Firebase)
-async function removerUsuario(userId) {
-    if (confirm("Tem certeza que deseja excluir este usuário?")) {
-        const usuarioRef = ref(db, `usuarios/${userId}`);
-        await set(usuarioRef, null); // Setar como null remove do Firebase
-        alert("Usuário removido!");
-    }
-}
-
-    if (!arquivo) return;
-    iframeViewer.style.display = 'none'; imgViewer.style.display = 'none'; status.style.display = 'none';
-    const urlArquivo = URL.createObjectURL(arquivo);
-
-    if (arquivo.type === "application/pdf") {
-        iframeViewer.src = urlArquivo; iframeViewer.style.display = 'block';
-    } else if (arquivo.type.startsWith("image/")) {
-        imgViewer.src = urlArquivo; imgViewer.style.display = 'block';
-    }
+    if (!tbody)
