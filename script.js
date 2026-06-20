@@ -1,24 +1,24 @@
 // ==========================================================================
-// CONSTRUCONTROL PRO v3.5 — ARMAZENAMENTO LOCAL DE USUÁRIO E REGISTRO LIVRE
+// CONSTRUCONTROL PRO v2.5 — ENGINE COMPLETA COM CARIMBO GEOMAPEADO TIMEMARK
 // ==========================================================================
 
-let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios_v3')) || [
-    { id: 1, nome: "Carlos Silva", cargo: "Pedreiro", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
-    { id: 2, nome: "Marcos Souza", cargo: "Armador", obraId: 1, frequencia: 0, ultimaProd: "-", fotoRecente: "" },
-    { id: 3, nome: "Antônio Lima", cargo: "Mestre de Obras", obraId: 2, frequencia: 0, ultimaProd: "-", fotoRecente: "" }
+let DB_FUNCIONARIOS = JSON.parse(localStorage.getItem('cc_funcionarios')) || [
+    { id: 1, nome: "Carlos Silva", cargo: "Pedreiro", obraId: 1, frequencia: 0, ultimaProd: "-" },
+    { id: 2, nome: "Marcos Souza", cargo: "Armador", obraId: 1, frequencia: 0, ultimaProd: "-" },
+    { id: 3, nome: "Antônio Lima", cargo: "Mestre de Obras", obraId: 2, frequencia: 0, ultimaProd: "-" }
 ];
 
-let DB_OBRAS = JSON.parse(localStorage.getItem('cc_obras_v3')) || [
+let DB_OBRAS = JSON.parse(localStorage.getItem('cc_obras')) || [
     { id: 1, nome: "Residencial Solarium", local: "Av. Paulista, 1000" },
     { id: 2, nome: "Condomínio Vista Verde", local: "Rua das Flores, 50" }
 ];
 
-let DB_PRODUCAO = JSON.parse(localStorage.getItem('cc_producao_v3')) || [];
+let DB_PRODUCAO = JSON.parse(localStorage.getItem('cc_producao')) || [];
 
 function salvarBD() {
-    localStorage.setItem('cc_funcionarios_v3', JSON.stringify(DB_FUNCIONARIOS));
-    localStorage.setItem('cc_obras_v3', JSON.stringify(DB_OBRAS));
-    localStorage.setItem('cc_producao_v3', JSON.stringify(DB_PRODUCAO));
+    localStorage.setItem('cc_funcionarios', JSON.stringify(DB_FUNCIONARIOS));
+    localStorage.setItem('cc_obras', JSON.stringify(DB_OBRAS));
+    localStorage.setItem('cc_producao', JSON.stringify(DB_PRODUCAO));
 }
 
 let isAdminLogado = false;
@@ -27,98 +27,17 @@ let enderecoCompletoGlobal = "Buscando localização detalhada...";
 
 document.addEventListener("DOMContentLoaded", () => {
     atualizarSelects();
-    verificarNomeDesteCelular(); 
-    verificarLogoConfigurado(); 
+    switchTab('aba-ponto-funcionarios'); // Força a inicialização travada no ponto
     renderizarPainelGeral();
     renderizarFichasEfetivo();
     renderizarProducaoPorObra();
     configurarPlanilhasEditaveis();
 });
 
-function verificarLogoConfigurado() {
-    const logoSalvo = localStorage.getItem('cc_app_logo_customizado');
-    const imgLogo = document.getElementById('logo-sistema-ponto');
-    const inputUrl = document.getElementById('config-logo-url');
-
-    if (imgLogo) {
-        if (logoSalvo) {
-            imgLogo.src = logoSalvo;
-            if (inputUrl) inputUrl.value = logoSalvo.startsWith('data:image') ? '' : logoSalvo;
-        } else {
-            imgLogo.src = "https://via.placeholder.com/100/1a1a1e/ffffff?text=LOGO";
-            if (inputUrl) inputUrl.value = '';
-        }
-    }
-}
-
-function salvarLogoAdmin(url) {
-    if (url.trim() === '') return;
-    localStorage.setItem('cc_app_logo_customizado', url.trim());
-    verificarLogoConfigurado();
-}
-
-// Função modificada para ler qualquer imagem da galeria/armazenamento local
-function carregarLogoArquivoAdmin(event) {
-    const arquivo = event.target.files[0];
-    if (!arquivo) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        // Converte o arquivo local em String Base64 permanente
-        localStorage.setItem('cc_app_logo_customizado', e.target.result);
-        verificarLogoConfigurado();
-        alert("Imagem carregada da galeria e aplicada com sucesso!");
-    };
-    reader.readAsDataURL(arquivo);
-}
-
-function restaurarLogoPadrao() {
-    localStorage.removeItem('cc_app_logo_customizado');
-    const fileInput = document.getElementById('config-logo-file');
-    if (fileInput) fileInput.value = '';
-    verificarLogoConfigurado();
-    alert("Logo padrão restaurado.");
-}
-
-function verificarNomeDesteCelular() {
-    const nomeSalvo = localStorage.getItem('cc_nome_proprio_dispositivo');
-    const instrucao = document.getElementById('ponto-card-instrucao');
-    const boxConfig = document.getElementById('box-ponto-config-inicial');
-    const boxUsuario = document.getElementById('box-ponto-usuario-salvo');
-    const txtNome = document.getElementById('txt-nome-memorizado');
-
-    if (nomeSalvo) {
-        instrucao.innerText = "Reconhecimento Ativo via Dispositivo";
-        boxConfig.style.display = 'none';
-        boxUsuario.style.display = 'block';
-        txtNome.innerText = nomeSalvo;
-    } else {
-        instrucao.innerText = "Configuração do Primeiro Acesso";
-        boxConfig.style.display = 'block';
-        boxUsuario.style.display = 'none';
-    }
-}
-
-function salvarNomeNesteCelular() {
-    const nomeInformado = document.getElementById('input-nome-celular').value.trim();
-    if (!nomeInformado) {
-        alert("Por favor, digite seu nome completo para salvar.");
+function switchTab(tabId) {
+    if (!isAdminLogado && tabId !== 'aba-ponto-funcionarios') {
         return;
     }
-    localStorage.setItem('cc_nome_proprio_dispositivo', nomeInformado);
-    verificarNomeDesteCelular();
-}
-
-function limparNomeCelular() {
-    if (confirm("Deseja apagar ou trocar o nome gravado neste celular? (Isso não altera seu cadastro na empresa)")) {
-        localStorage.removeItem('cc_nome_proprio_dispositivo');
-        document.getElementById('input-nome-celular').value = "";
-        verificarNomeDesteCelular();
-    }
-}
-
-function switchTab(tabId) {
-    if (!isAdminLogado && tabId !== 'aba-ponto-funcionarios') return;
 
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none';
@@ -138,6 +57,11 @@ function switchTab(tabId) {
     if (btnMenu) btnMenu.classList.add('active');
 }
 
+function cancelarSelecaoPonto() {
+    document.getElementById('select-ponto-publico').value = "";
+}
+
+// --- ENGINE REVOLUCIONÁRIA DE EXPORTAÇÃO EXCEL (PC E CELULAR) ---
 function exportarTabelaParaExcel(idTabela, nomeArquivo) {
     const tabela = document.getElementById(idTabela);
     if (!tabela) return;
@@ -146,123 +70,134 @@ function exportarTabelaParaExcel(idTabela, nomeArquivo) {
     const linhas = tabela.querySelectorAll("tr");
 
     linhas.forEach(linha => {
-        const colunas = inline_obterColunas(linha);
+        const colunas = line.querySelectorAll("th, td");
         let dadosLinha = [];
+        
         colunas.forEach(coluna => {
-            let texto = coluna.innerText.replace(/"/g, '""').trim();
-            if (texto.includes("Inspecionar Histórico")) texto = texto.replace("Inspecionar Histórico →", "").trim();
-            dadosLinha.push('"' + texto + '"');
+            let textoCelula = coluna.innerText.replace(/"/g, '""').trim();
+            if (textoCelula.includes("Ver Ficha")) textoCelula = textoCelula.replace("Ver Ficha →", "").trim();
+            dadosLinha.push('"' + textoCelula + '"');
         });
+
         conteudoCSV += dadosLinha.join(";") + "\r\n"; 
     });
 
     const blob = new Blob([conteudoCSV], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", nomeArquivo + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function inline_obterColunas(linha) {
-    return inline_obterColunasElement = linha.querySelectorAll("th, td");
-}
-
-function configuringPlanilhasEditaveisHelper(celula, tabela) {
-    const linha = celula.parentElement;
-    const idFuncionario = linha.getAttribute('data-id');
-    const colunaIndex = celula.cellIndex;
-    const novoValor = celula.innerText.trim();
-
-    if (idFuncionario) {
-        const func = DB_FUNCIONARIOS.find(f => f.id == idFuncionario);
-        if (func) {
-            if (colunaIndex === 0) func.nome = novoValor;
-            if (colunaIndex === 1) func.cargo = novoValor;
-            if (colunaIndex === 3 || (colunaIndex === 2 && tabela.id === "tabela-fichas-efetivo")) {
-                func.frequencia = parseInt(novoValor) || 0;
-            }
-            salvarBD();
-            renderizarPainelGeral();
-            renderizarFichasEfetivo();
-            renderizarProducaoPorObra();
-        }
+    
+    if (navigator.msSaveBlob) { 
+        navigator.msSaveBlob(blob, nomeArquivo + ".csv");
+    } else {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", nomeArquivo + ".csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
 
+// --- ADAPTADOR DE EDICÃO DE PLANILHA EM TEMPO REAL ---
 function configurarPlanilhasEditaveis() {
     document.querySelectorAll('table').forEach(tabela => {
         tabela.addEventListener('blur', (evento) => {
             const celula = evento.target;
             if (celula.tagName === 'TD' && celula.hasAttribute('contenteditable')) {
-                configuringPlanilhasEditaveisHelper(celula, tabela);
+                const linha = celula.parentElement;
+                const idFuncionario = linha.getAttribute('data-id');
+                const colunaIndex = celula.cellIndex;
+                const novoValor = celula.innerText.trim();
+
+                if (idFuncionario) {
+                    const func = DB_FUNCIONARIOS.find(f => f.id == idFuncionario);
+                    if (func) {
+                        if (colunaIndex === 0) func.nome = novoValor;
+                        if (colunaIndex === 1) func.cargo = novoValor;
+                        if (colunaIndex === 3 || (colunaIndex === 2 && tabela.id === "tabela-fichas-efetivo")) {
+                            func.frequencia = parseInt(novoValor) || 0;
+                        }
+                        salvarBD();
+                        renderizarPainelGeral();
+                        renderizarFichasEfetivo();
+                        renderizarProducaoPorObra();
+                    }
+                }
             }
         }, true);
     });
 }
 
+// --- CONTROLE DE ACESSO (SEM DICA DE SENHA) ---
 function lidarBotaoLogin() {
     const btn = document.getElementById('btn-estado-login');
     const sidebar = document.getElementById('sidebar-admin');
 
     if (!isAdminLogado) {
-        let senha = prompt("Digite a senha do Administrador:");
+        let senha = prompt("Digite a senha de administrador:");
         if (senha && senha.toLowerCase().trim() === "admin") {
             isAdminLogado = true;
-            btn.innerHTML = '<i class="fa-solid fa-unlock"></i> SAIR';
+            btn.innerHTML = '<i class="fa-solid fa-unlock"></i> SAIR DO PAINEL';
             btn.style.backgroundColor = '#22c55e';
             sidebar.style.display = 'flex'; 
             switchTab('painel-geral'); 
         } else { 
-            alert("Acesso negado!"); 
+            alert("Senha incorreta!"); 
         }
     } else {
         isAdminLogado = false;
-        btn.innerHTML = '<i class="fa-solid fa-lock"></i> ADMIN';
+        btn.innerHTML = '<i class="fa-solid fa-lock"></i> ÁREA DO PATRÃO';
         btn.style.backgroundColor = '';
         sidebar.style.display = 'none'; 
         switchTab('aba-ponto-funcionarios'); 
     }
 }
 
+function imprimirAba() {
+    window.print();
+}
+
 function atualizarSelects() {
+    const selectPonto = document.getElementById('select-ponto-publico');
     const selectProdFunc = document.getElementById('prod-funcionario');
     const selectAddFuncObra = document.getElementById('func-obra-inicial');
     const selectFiltroObra = document.getElementById('filtro-obra-analise');
 
+    if (selectPonto) selectPonto.innerHTML = '<option value="">-- Escolha seu Nome na Lista --</option>' + DB_FUNCIONARIOS.map(f => `<option value="${f.nome}">${f.nome} (${f.cargo})</option>`).join('');
     if (selectProdFunc) selectProdFunc.innerHTML = '<option value="">-- Escolha o Operário --</option>' + DB_FUNCIONARIOS.map(f => `<option value="${f.nome}">${f.nome}</option>`).join('');
     if (selectAddFuncObra) selectAddFuncObra.innerHTML = DB_OBRAS.map(o => `<option value="${o.id}">${o.nome}</option>`).join('');
     if (selectFiltroObra) selectFiltroObra.innerHTML = '<option value="">-- Escolha a Obra para Filtrar --</option>' + DB_OBRAS.map(o => `<option value="${o.id}">${o.nome}</option>`).join('');
 }
 
+// ==========================================================================
+// TERMINAL DE CAMERAS, GEOCODIFICAÇÃO REAL (NOMINATIM) E CARIMBO TIMEMARK
+// ==========================================================================
 function solicitarPontoPublico() {
-    const nomeSelecionado = localStorage.getItem('cc_nome_proprio_dispositivo');
-    if (!nomeSelecionado) { alert("Nome do dispositivo não configurado."); return; }
+    const nomeSelecionado = document.getElementById('select-ponto-publico').value;
+    if (!nomeSelecionado) { alert("Selecione seu nome antes de bater o ponto!"); return; }
 
     document.getElementById('modal-ponto').style.display = 'flex';
-    document.getElementById('modal-ponto-titulo').innerText = `Registrar Horário: ${nomeSelecionado}`;
+    document.getElementById('modal-ponto-titulo').innerText = `Registrar Ponto: ${nomeSelecionado}`;
 
     const video = document.getElementById('ponto-video');
     const gpsStatus = document.getElementById('modal-ponto-gps');
-    gpsStatus.innerHTML = `📡 Buscando satélites GPS e iniciando câmera...`;
+    gpsStatus.innerHTML = `📡 Sintonizando satélites GPS e câmera...`;
     
     enderecoCompletoGlobal = "Buscando localização detalhada...";
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
         .then(stream => { streamCameraGlobal = stream; video.srcObject = stream; })
-        .catch(() => alert("Erro ao acessar a câmera frontal."));
+        .catch(() => alert("Erro ao inicializar câmera do dispositivo."));
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            gpsStatus.innerHTML = `📍 Localização encontrada. Consultando CEP...`;
+            gpsStatus.innerHTML = `📍 Coordenadas obtidas. Traduzindo endereço...`;
 
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {
-                headers: { 'User-Agent': 'ControleBS/3.5' }
+                headers: { 'User-Agent': 'ConstruControlPRO/2.5' }
             })
             .then(res => res.json())
             .then(dados => {
@@ -273,16 +208,16 @@ function solicitarPontoPublico() {
                 const cidade = add.city || add.town || "";
 
                 enderecoCompletoGlobal = `RUA: ${rua}\nBAIRRO: ${bairro} | CEP: ${cep}\nCIDADE: ${cidade} (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
-                gpsStatus.innerHTML = `📍 Mapeado: ${rua}, ${bairro} - CEP: ${cep}`;
+                gpsStatus.innerHTML = `📍 Localizado: ${rua}, ${bairro} - CEP: ${cep}`;
             })
             .catch(() => {
-                enderecoCompletoGlobal = `Lat: ${lat.toFixed(5)} | Lon: ${lon.toFixed(5)}\n(Sem rede para reverter CEP)`;
+                enderecoCompletoGlobal = `Lat: ${lat.toFixed(5)} | Lon: ${lon.toFixed(5)}\n(Sem conexão para traduzir CEP)`;
                 gpsStatus.innerHTML = `📍 Travado por Coordenadas: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
             });
 
         }, () => { 
             enderecoCompletoGlobal = "GPS Indisponível (Ponto batido sem rastreamento de satélite)";
-            gpsStatus.innerHTML = "❌ Sinal de GPS indisponível."; 
+            gpsStatus.innerHTML = "❌ Sem sinal de GPS ou permissão negada."; 
         }, { enableHighAccuracy: true, timeout: 10000 });
     }
 }
@@ -293,29 +228,31 @@ function fecharModalPonto() {
 }
 
 function confirmarPontoPublico() {
-    const nome = localStorage.getItem('cc_nome_proprio_dispositivo');
+    const nome = document.getElementById('select-ponto-publico').value;
     const video = document.getElementById('ponto-video');
     
     const canvas = document.createElement('canvas');
     canvas.width = 640; 
     canvas.height = 480;
     const ctx = canvas.getContext('2d');
+    
     ctx.drawImage(video, 0, 0, 640, 480);
 
+    // --- CARIMBO ESTILO TIMEMARK ---
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
     ctx.fillRect(15, 330, 610, 135);
-    ctx.fillStyle = "#f39c12"; 
+    
+    ctx.fillStyle = "#f39c12";
     ctx.fillRect(15, 330, 6, 135);
+
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 15px 'Segoe UI', Arial, sans-serif";
-    
-    const agora = new Date();
-    const dataHoraStr = agora.toLocaleString('pt-BR');
+    const dataHora = new Date().toLocaleString('pt-BR');
     ctx.fillText(`OPERÁRIO: ${nome.toUpperCase()}`, 35, 360);
     
     ctx.fillStyle = "#f39c12";
     ctx.font = "bold 14px 'Segoe UI', Arial, sans-serif";
-    ctx.fillText(`📅 ${dataHoraStr}`, 35, 385);
+    ctx.fillText(`📅 ${dataHora}`, 35, 385);
 
     ctx.fillStyle = "#e0e0e5";
     ctx.font = "600 12px 'Segoe UI', Arial, sans-serif";
@@ -328,30 +265,30 @@ function confirmarPontoPublico() {
     });
 
     const fotoFinalComCarimbo = canvas.toDataURL('image/jpeg');
-    const funcionario = DB_FUNCIONARIOS.find(f => f.nome.toLowerCase().trim() === nome.toLowerCase().trim());
+    const funcionario = DB_FUNCIONARIOS.find(f => f.nome === nome);
     
     if (funcionario) {
-        funcionario.fotoRecente = fotoFinalComCarimbo;
         funcionario.frequencia += 1;
-        funcionario.ultimaProd = `Batida às ${agora.toLocaleTimeString('pt-BR')}`;
+        funcionario.ultimaProd = "Ponto Batido ✔️";
         
         DB_PRODUCAO.push({
-            funcionario: funcionario.nome,
-            volume: `Batida de Horário (${agora.toLocaleTimeString('pt-BR')})`,
-            data: dataHoraStr,
+            funcionario: nome,
+            volume: "Frequência Homologada (TimeMark)",
+            data: dataHora,
             obraId: funcionario.obraId,
             fotoCartao: fotoFinalComCarimbo
         });
-        salvarBD(); renderizarPainelGeral(); renderizarFichasEfetivo(); renderizarProducaoPorObra();
-        alert(`Ponto das ${agora.toLocaleTimeString('pt-BR')} armazenado com sucesso!`);
-    } else {
-        DB_PRODUCAO.push({ funcionario: nome + " (Não cadastrado)", volume: `Ponto Contingência às ${agora.toLocaleTimeString('pt-BR')}`, data: dataHoraStr, obraId: 0, fotoCartao: fotoFinalComCarimbo });
-        salvarBD(); renderizarPainelGeral();
-        alert(`Aviso: Horário salvo (${agora.toLocaleTimeString('pt-BR')}), mas seu nome não foi localizado na lista oficial do Administrador.`);
+
+        salvarBD();
+        renderizarPainelGeral();
+        renderizarFichasEfetivo();
+        renderizarProducaoPorObra();
+        alert("Ponto armazenado com carimbo de endereço completo!");
     }
     fecharModalPonto();
 }
 
+// --- RENDERIZADORES ---
 function renderizarPainelGeral() {
     if (document.getElementById('card-total-obras')) document.getElementById('card-total-obras').innerText = DB_OBRAS.length;
     if (document.getElementById('card-total-func')) document.getElementById('card-total-func').innerText = DB_FUNCIONARIOS.length;
@@ -366,9 +303,9 @@ function renderizarPainelGeral() {
             <tr data-id="${f.id}">
                 <td contenteditable="true"><strong>${f.nome}</strong></td>
                 <td contenteditable="true">${f.cargo}</td>
-                <td><span class="badge-obra">${obraObj ? obraObj.nome : "Não Alocado"}</span></td>
+                <td><span class="badge-obra">${obraObj ? obraObj.nome : "Sem Alocação"}</span></td>
                 <td contenteditable="true" style="color: var(--neon-green); font-weight:bold;">${f.frequencia}</td>
-                <td><span style="color: var(--accent-orange); font-size:13px;">${f.ultimaProd}</span></td>
+                <td><span style="color: var(--accent-orange);">${f.ultimaProd}</span></td>
             </tr>
         `;
     }).join('');
@@ -380,10 +317,10 @@ function renderizarFichasEfetivo() {
 
     tbody.innerHTML = DB_FUNCIONARIOS.map(f => `
         <tr class="row-clicavel" data-id="${f.id}" onclick="abrirFichaOperario(${f.id})">
-            <td><i class="fa-solid fa-id-badge" style="color:var(--accent-orange); margin-right:8px;"></i> <strong>${f.nome}</strong></td>
+            <td><i class="fa-solid fa-folder-open" style="color:var(--accent-orange); margin-right:8px;"></i> <strong>${f.nome}</strong></td>
             <td>${f.cargo}</td>
-            <td>${f.frequencia} batidas</td>
-            <td><span style="color:var(--neon-blue); font-size:13px;">Inspecionar Histórico &rarr;</span></td>
+            <td>${f.frequencia} dias</td>
+            <td><span style="color:var(--neon-blue); font-size:13px;">Ver Ficha Individual &rarr;</span></td>
         </tr>
     `).join('');
 }
@@ -396,7 +333,7 @@ function renderizarProducaoPorObra() {
 
     if (!idObraFiltrada) {
         titulo.innerText = "Selecione uma obra no campo acima";
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum canteiro selecionado para filtragem.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum canteiro selecionado.</td></tr>`;
         return;
     }
 
@@ -408,7 +345,7 @@ function renderizarProducaoPorObra() {
         <tr data-id="${f.id}">
             <td><strong>${f.nome}</strong></td>
             <td>${f.cargo}</td>
-            <td>${f.frequencia} Batidas</td>
+            <td>${f.frequencia} Presenças</td>
             <td>${f.ultimaProd}</td>
         </tr>
     `).join('');
@@ -419,36 +356,30 @@ function abrirFichaOperario(id) {
     if (!func) return;
 
     const obraObj = DB_OBRAS.find(o => o.id == func.obraId);
-    const todasBatidas = DB_PRODUCAO.filter(p => p.funcionario.toLowerCase().trim() === func.nome.toLowerCase().trim());
+    const registroProducao = DB_PRODUCAO.filter(p => p.funcionario === func.nome && p.fotoCartao).pop();
 
-    document.getElementById('ficha-nome-titulo').innerText = `Ficha Cadastral: ${func.nome}`;
+    document.getElementById('ficha-nome-titulo').innerText = `Ficha Funcional: ${func.nome}`;
+    
     const imgElement = document.getElementById('ficha-foto-img');
     const txtSemFoto = document.getElementById('ficha-sem-foto-txt');
 
-    if (func.fotoRecente) {
-        imgElement.src = func.fotoRecente; imgElement.style.display = 'block'; txtSemFoto.style.display = 'none';
+    if (registroProducao && registroProducao.fotoCartao) {
+        imgElement.src = registroProducao.fotoCartao;
+        imgElement.style.display = 'block';
+        txtSemFoto.style.display = 'none';
     } else {
-        imgElement.style.display = 'none'; txtSemFoto.style.display = 'block';
+        imgElement.style.display = 'none';
+        txtSemFoto.style.display = 'block';
     }
 
     document.getElementById('ficha-dados-texto').innerHTML = `
-        <p><strong>Profissão/Cargo:</strong> ${func.cargo}</p>
+        <p><strong>Cargo/Profissão:</strong> ${func.cargo}</p>
         <p><strong>Canteiro Alocado:</strong> ${obraObj ? obraObj.nome : 'Nenhum'}</p>
         <p><strong>Endereço da Obra:</strong> ${obraObj ? obraObj.local : '-'}</p>
-        <p><strong>Total de Registros:</strong> ${func.frequencia} pontos batidos</p>
+        <p><strong>Frequência Acumulada:</strong> ${func.frequencia} dias trabalhados</p>
+        <p><strong>Último Histórico:</strong> ${func.ultimaProd}</p>
     `;
 
-    const historicoBox = document.getElementById('ficha-historico-lista');
-    if (todasBatidas.length === 0) {
-        historicoBox.innerHTML = `<div style="color:var(--text-muted); font-size:12px; padding:5px;">Nenhum horário salvo.</div>`;
-    } else {
-        historicoBox.innerHTML = [...todasBatidas].reverse().map(b => `
-            <div class="historico-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
-                <span><i class="fa-regular fa-clock" style="color:var(--accent-orange); margin-right:5px;"></i> ${b.volume}</span>
-                <span style="color:var(--text-muted); font-size:11px;">${b.data.split(' ')[0]}</span>
-            </div>
-        `).join('');
-    }
     document.getElementById('modal-ficha').style.display = 'flex';
 }
 
@@ -456,6 +387,7 @@ function fecharModalFicha() {
     document.getElementById('modal-ficha').style.display = 'none';
 }
 
+// --- FORMULÁRIOS DE REGISTRO ---
 document.getElementById('form-producao')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const nomeFunc = document.getElementById('prod-funcionario').value;
@@ -463,4 +395,55 @@ document.getElementById('form-producao')?.addEventListener('submit', (e) => {
     const funcionario = DB_FUNCIONARIOS.find(f => f.nome === nomeFunc);
     if (funcionario) {
         funcionario.ultimaProd = volumeProd;
-        DB_PRODUCAO.push({ funcionario: nomeFunc,
+        DB_PRODUCAO.push({ funcionario: nomeFunc, volume: volumeProd, data: new Date().toLocaleDateString('pt-BR'), obraId: funcionario.obraId });
+        salvarBD(); renderizarPainelGeral(); renderizarProducaoPorObra();
+        e.target.reset(); alert(`Produção registrada!`);
+    }
+});
+
+document.getElementById('form-add-funcionario')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('func-nome').value;
+    const cargo = document.getElementById('func-cargo').value;
+    const obraId = parseInt(document.getElementById('func-obra-inicial').value);
+    const novoId = DB_FUNCIONARIOS.length ? Math.max(...DB_FUNCIONARIOS.map(f => f.id)) + 1 : 1;
+    DB_FUNCIONARIOS.push({ id: novoId, nome, cargo, obraId, frequencia: 0, ultimaProd: "-" });
+    salvarBD(); atualizarSelects(); renderizarPainelGeral(); renderizarFichasEfetivo();
+    e.target.reset(); alert(`Operário Registrado!`);
+});
+
+document.getElementById('form-add-obra')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('obra-nome').value;
+    const local = document.getElementById('obra-local').value;
+    const novoId = DB_OBRAS.length ? Math.max(...DB_OBRAS.map(o => o.id)) + 1 : 1;
+    DB_OBRAS.push({ id: novoId, nome, local });
+    salvarBD(); atualizarSelects(); renderizarPainelGeral();
+    e.target.reset(); alert(`Canteiro Integrado!`);
+});
+
+function carregarProjetoPlanta(event) {
+    const arquivo = event.target.files[0];
+    const status = document.getElementById('preview-projeto-status');
+    const iframeViewer = document.getElementById('viewer-pdf-projeto');
+    const imgViewer = document.getElementById('viewer-img-projeto');
+
+    if (!arquivo) return;
+
+    iframeViewer.style.display = 'none';
+    imgViewer.style.display = 'none';
+    status.style.display = 'none';
+
+    const urlArquivo = URL.createObjectURL(arquivo);
+
+    if (arquivo.type === "application/pdf") {
+        iframeViewer.src = urlArquivo;
+        iframeViewer.style.display = 'block';
+    } else if (arquivo.type.startsWith("image/")) {
+        imgViewer.src = urlArquivo;
+        imgViewer.style.display = 'block';
+    } else {
+        status.style.display = 'block';
+        status.innerHTML = `<p>Formato inválido. Carregue PDF ou Imagens.</p>`;
+    }
+    }
