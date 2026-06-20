@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONTROLE BS</title>
+    <title>ConstruControl PRO v2.5</title>
     <!-- FontAwesome para Ícones Premium -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -22,20 +22,22 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Topbar / Header Geral */
+        /* Topbar de Bloqueio/Admin */
         #topbar-lock { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 999; }
         .logo-top { display: flex; align-items: center; gap: 10px; }
         .logo-top i { color: var(--accent-orange); font-size: 20px; }
-        .logo-top h2 { font-size: 16px; font-weight: 800; letter-spacing: 0.5px; }
+        .logo-top h2 { font-size: 16px; font-weight: 800; }
         .logo-top span { color: var(--accent-orange); }
-        #btn-estado-login { background-color: rgba(243, 156, 18, 0.1); color: var(--accent-orange); border: 1px solid rgba(243, 156, 18, 0.3); padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; letter-spacing: 0.5px; }
 
-        /* Sidebar do Administrador (Inicia Oculta) */
+        /* Sidebar Logística (Inicia Oculta se deslogado) */
         #sidebar-admin { background-color: var(--bg-sidebar); width: 260px; border-right: 1px solid var(--border-color); display: none; flex-direction: column; padding: 80px 10px 20px 10px; shrink: 0; }
+
         .nav-container { display: flex; flex-direction: column; gap: 5px; }
         .nav-btn { background: none; border: none; color: var(--text-muted); padding: 12px 15px; width: 100%; text-align: left; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; margin-bottom: 5px; }
         .nav-btn:hover { background-color: rgba(255, 255, 255, 0.05); color: var(--text-main); }
         .nav-btn.active { background-color: var(--accent-orange); color: #000; }
+        
+        #btn-estado-login { background-color: rgba(243, 156, 18, 0.1); color: var(--accent-orange); border: 1px solid rgba(243, 156, 18, 0.3); padding: 8px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
 
         /* Área de Conteúdo Principal */
         main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: var(--bg-dark); padding-top: 60px; }
@@ -51,105 +53,99 @@
         .btn-tool { background-color: #222226; border: 1px solid var(--border-color); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
         .btn-tool:hover { background-color: #2c2c35; border-color: var(--text-muted); }
         .btn-excel { background-color: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: var(--neon-green); }
+        .btn-excel:hover { background-color: rgba(34, 197, 94, 0.2); }
 
-        /* Layout Centralizado com Logo */
-        .ponto-container-central { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); padding: 20px; }
-        .ponto-card { background: linear-gradient(145deg, #1e1e24, #141418); border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.6); border-radius: 24px; width: 100%; max-width: 480px; padding: 40px 30px; text-align: center; }
-        
-        /* Círculo do Logo com efeito Pulse */
-        .ponto-logo-box { width: 110px; height: 110px; background-color: var(--bg-card); border: 2px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto; overflow: hidden; padding: 10px; animation: pulseGlow 2s infinite; }
-        .ponto-logo-box img { width: 100%; height: 100%; object-fit: contain; }
-        
-        @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.4); border-color: var(--accent-orange); } 70% { box-shadow: 0 0 0 15px rgba(243, 156, 18, 0); border-color: var(--border-color); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); border-color: var(--accent-orange); } }
-        .ponto-card h2 { font-size: 26px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; color: #fff; }
-        .ponto-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
-        
-        /* Box do Nome Memorizado */
-        .user-memorized-box { background-color: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 5px; }
-        .user-name-title { font-size: 18px; font-weight: 700; color: #fff; }
-        .btn-change-user { background: none; border: none; color: var(--accent-orange); font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline; margin-top: 5px; }
-
-        /* Cards Informativos Administrativos */
+        /* Cards Informativos */
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background-color: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; }
+        .card { background-color: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.2s, background-color 0.2s; }
         .card:hover { transform: translateY(-3px); background-color: #222226; }
         .card-info h3 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
         .card-info p { font-size: 28px; font-weight: 700; }
         .card i { font-size: 32px; opacity: 0.3; }
 
-        /* Componentes e Formulários */
+        /* Componentes e Planilhas */
         .box-container { background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 25px; margin-bottom: 25px; }
-        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
-        label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        select, input { background-color: #121214; border: 1px solid var(--border-color); color: #fff; padding: 14px; border-radius: 10px; font-size: 15px; outline: none; width: 100%; transition: 0.2s; }
-        select:focus, input:focus { border-color: var(--accent-orange); box-shadow: 0 0 0 2px rgba(243,156,18,0.2); }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        select, input { background-color: #222226; border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 15px; outline: none; width: 100%; }
+        select:focus, input:focus { border-color: var(--accent-orange); }
         
-        .btn-principal { background-color: var(--accent-orange); color: #000; font-weight: 700; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: 0.2s; }
-        .btn-principal:hover { background-color: #e08e0b; transform: translateY(-1px); }
+        .btn-principal { background-color: var(--accent-orange); color: #000; font-weight: 700; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: 0.2s; }
+        .btn-principal:hover { background-color: #e08e0b; }
 
-        /* Tabelas / Planilhas Excel Style */
+        /* Tabelas/Planilhas Excel Editáveis */
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; background-color: rgba(255,255,255,0.01); }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); border-right: 1px solid rgba(255,255,255,0.03); }
         th { background-color: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 700; }
-        td[contenteditable="true"] { outline: none; cursor: cell; }
-        td[contenteditable="true"]:focus { background-color: rgba(243, 156, 18, 0.1); box-shadow: inset 0 0 0 1px var(--accent-orange); color: #fff; }
+        td[contenteditable="true"] { outline: none; position: relative; transition: background 0.1s; cursor: cell; }
+        td[contenteditable="true"]:focus { background-color: rgba(243, 156, 18, 0.1) !important; box-shadow: inset 0 0 0 1px var(--accent-orange); color: #fff; }
         tr:hover td { background-color: rgba(255, 255, 255, 0.01); }
-        .badge-obra { background-color: rgba(0, 210, 255, 0.1); color: var(--neon-blue); padding: 5px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+        
+        .badge-obra { background-color: rgba(0, 210, 255, 0.1); color: var(--neon-blue); padding: 5px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
         .row-clicavel { cursor: pointer; }
-        .row-clicavel:hover td { background-color: rgba(0, 210, 255, 0.04) !important; }
+        .row-clicavel:hover td { background-color: rgba(0, 210, 255, 0.05) !important; }
 
-        /* Dropzone Upload */
-        .upload-dropzone { background-color: #111; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--border-color); border-radius: 12px; cursor: pointer; padding: 20px; }
+        /* Caixa de Upload do Leitor Clivável */
+        .upload-dropzone { background-color: #111; min-height: 350px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--border-color); border-radius: 12px; cursor: pointer; transition: 0.2s; padding: 30px; position: relative; }
+        .upload-dropzone:hover { border-color: var(--neon-blue); background-color: rgba(0, 210, 255, 0.02); }
 
         /* Modais */
-        .modal-fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-content { background-color: var(--bg-card); border: 1px solid var(--border-color); width: 100%; max-width: 550px; border-radius: 20px; padding: 25px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 15px 45px rgba(0,0,0,0.7); }
+        .modal-fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-content { background-color: var(--bg-card); border: 1px solid var(--border-color); width: 100%; max-width: 550px; border-radius: 16px; padding: 25px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
         .modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+        
         .video-wrapper { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .gps-box { background-color: rgba(0,0,0,0.5); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 13px; color: #fff; text-align: center; font-weight: 600; }
+        .gps-box { background-color: rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 13px; color: #fff; text-align: center; font-weight: 600; }
         
-        /* Ficha Cadastral Avançada */
-        .ficha-corpo { display: flex; flex-direction: column; gap: 20px; }
-        .ficha-foto-container { width: 100%; height: 260px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background-color: #111; display: flex; align-items: center; justify-content: center; }
+        /* Ficha de Operário */
+        .ficha-corpo { display: flex; flex-direction: column; gap: 15px; text-align: center; }
+        .ficha-foto-container { width: 100%; max-height: 280px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background-color: #111; display: flex; align-items: center; justify-content: center; }
         .ficha-foto-container img { width: 100%; height: 100%; object-fit: contain; }
-        .ficha-dados { background-color: #111114; padding: 18px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .ficha-dados p { margin-bottom: 10px; font-size: 14px; }
-        .ficha-dados strong { color: var(--text-muted); display: inline-block; width: 130px; }
-        .historico-pontos-box { max-height: 150px; overflow-y: auto; background-color: #121214; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; }
-        .historico-item { font-size: 12px; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; display: flex; justify-content: space-between; }
+        .ficha-dados { text-align: left; background-color: #111114; padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .ficha-dados p { margin-bottom: 8px; font-size: 14px; }
+        .ficha-dados strong { color: var(--text-muted); }
 
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            #sidebar-admin { width: 100%; height: auto; padding: 80px 15px 15px 15px; }
+            #sidebar-admin { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); padding: 80px 15px 15px 15px; }
             .nav-container { flex-direction: row; flex-wrap: wrap; }
             .nav-btn { width: calc(50% - 5px); }
+            .tab-content { padding: 15px; }
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            .tab-content.active, .tab-content.active * { visibility: visible; }
+            .tab-content.active { position: absolute; left: 0; top: 0; width: 100%; padding: 0; background: #fff; color: #000; }
+            .sheet-tools, #sidebar-admin, #topbar-lock, .upload-dropzone, form, button { display: none !important; }
+            table, th, td { border: 1px solid #000 !important; color: #000 !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 🔒 TOPBAR -->
+    <!-- 🔒 TOPBAR DE SEGURANÇA -->
     <div id="topbar-lock">
         <div class="logo-top">
-            <i class="fa-solid fa-square-poll-vertical"></i>
-            <h2>CONTROLE BS</h2>
+            <i class="fa-solid fa-helmet-safety"></i>
+            <h2>ConstruControl <span>PRO</span></h2>
         </div>
         <button id="btn-estado-login" onclick="lidarBotaoLogin()">
-            <i class="fa-solid fa-lock"></i> ADMIN
+            <i class="fa-solid fa-lock"></i> ÁREA DO PATRÃO
         </button>
     </div>
 
-    <!-- 🛠️ SIDEBAR DO ADMINISTRADOR -->
+    <!-- 🛠️ SIDEBAR (Escondida por padrão) -->
     <aside id="sidebar-admin">
         <div class="nav-container">
             <button class="nav-btn" onclick="switchTab('painel-geral')">
                 <i class="fa-solid fa-chart-line"></i> PAINEL GERAL
             </button>
             <button class="nav-btn active" onclick="switchTab('aba-ponto-funcionarios')">
-                <i class="fa-solid fa-camera"></i> TERMINAL DE PONTO
+                <i class="fa-solid fa-camera"></i> REGISTRAR PONTO
             </button>
             <button class="nav-btn" onclick="switchTab('aba-fichas-efetivo')">
                 <i class="fa-solid fa-id-card"></i> FICHAS DO EFETIVO
@@ -163,46 +159,27 @@
             <button class="nav-btn" onclick="switchTab('aba-leitor-projetos')">
                 <i class="fa-solid fa-file-pdf"></i> LEITOR DE PROJETOS
             </button>
-            <!-- ⚙️ NOVA INTEGRAÇÃO: BOTÃO DE CONFIGURAÇÕES NA SIDEBAR -->
-            <button class="nav-btn" onclick="switchTab('aba-configuracoes-app')">
-                <i class="fa-solid fa-gear"></i> CONFIGURAÇÕES
-            </button>
         </div>
     </aside>
 
     <!-- 📺 CONTEÚDO PRINCIPAL -->
     <main>
         
-        <!-- 🎯 TERMINAL DE REGISTRO DE PONTO -->
+        <!-- 🎯 ABA REGISTRO DE PONTO (ÚNICA ABA INICIAL ACESSÍVEL) -->
         <section id="aba-ponto-funcionarios" class="tab-content active">
-            <div class="ponto-container-central">
-                <div class="ponto-card">
-                    <div class="ponto-logo-box">
-                        <img id="logo-sistema-ponto" src="https://via.placeholder.com/100/1a1a1e/ffffff?text=LOGO" alt="Logo Empresa">
-                    </div>
-                    <h2>CONTROLE BS</h2>
-                    <p id="ponto-card-instrucao">Carregando dados do aparelho...</p>
-                    
-                    <div id="box-ponto-config-inicial" style="display: none;">
-                        <div class="form-group">
-                            <label>Escreva seu Nome Completo:</label>
-                            <input type="text" id="input-nome-celular" placeholder="Ex: Carlos Silva">
-                        </div>
-                        <button class="btn-principal" onclick="salvarNomeNesteCelular()">
-                            <i class="fa-solid fa-floppy-disk"></i> Salvar Nome neste Celular
-                        </button>
-                    </div>
-
-                    <div id="box-ponto-usuario-salvo" style="display: none;">
-                        <div class="user-memorized-box">
-                            <span style="font-size:12px; color:var(--text-muted); text-transform:uppercase;">Funcionário Vinculado:</span>
-                            <span class="user-name-title" id="txt-nome-memorizado">---</span>
-                            <button class="btn-change-user" onclick="limparNomeCelular()">Alterar Nome / Outro Usuário</button>
-                        </div>
-                        <button class="btn-principal" style="background-color: var(--neon-green); color:#000;" onclick="solicitarPontoPublico()">
-                            <i class="fa-solid fa-camera"></i> Bater Ponto Agora
-                        </button>
-                    </div>
+            <h1><i class="fa-solid fa-user-check" style="color:var(--accent-orange);"></i> Terminal de Ponto do Canteiro</h1>
+            <div class="box-container" style="max-width: 600px; margin: 40px auto; text-align: center;">
+                <div class="form-group" style="text-align: left;">
+                    <label>NOME COMPLETO DO OPERÁRIO:</label>
+                    <select id="select-ponto-publico"></select>
+                </div><br>
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn-principal" style="background-color: #323238; color: #fff;" onclick="cancelarSelecaoPonto()">
+                        Cancelar
+                    </button>
+                    <button class="btn-principal" onclick="solicitarPontoPublico()">
+                        <i class="fa-solid fa-camera"></i> Registrar Ponto
+                    </button>
                 </div>
             </div>
         </section>
@@ -212,7 +189,8 @@
             <div class="header-actions">
                 <h1><i class="fa-solid fa-sliders" style="color:var(--neon-blue);"></i> Painel Geral de Auditoria</h1>
                 <div class="sheet-tools">
-                    <button class="btn-tool btn-excel" onclick="exportarTabelaParaExcel('tabela-painel-geral', 'Painel_Geral_Auditoria')"><i class="fa-solid fa-file-excel"></i> Baixar Excel</button>
+                    <button class="btn-tool btn-excel" onclick="exportarTabelaParaExcel('tabela-painel-geral', 'Painel_Geral_Auditoria')"><i class="fa-solid fa-file-excel"></i> Baixar Planilha Excel</button>
+                    <button class="btn-tool" onclick="imprimirAba()"><i class="fa-solid fa-print"></i> Imprimir / PDF</button>
                 </div>
             </div>
             
@@ -225,14 +203,14 @@
                     <div class="card-info"><h3>Efetivo Total</h3><p id="card-total-func">0</p></div>
                     <i class="fa-solid fa-users"></i>
                 </div>
-                <div class="card" style="border-left: 4px solid var(--neon-green);" onclick="switchTab('aba-fichas-efetivo')">
-                    <div class="card-info"><h3>Total Batidas</h3><p id="card-total-prod">0</p></div>
+                <div class="card" style="border-left: 4px solid var(--neon-green);" onclick="switchTab('aba-lancar-producao')">
+                    <div class="card-info"><h3>Registros Coletados</h3><p id="card-total-prod">0</p></div>
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
             </div>
 
             <div class="box-container">
-                <h2>Quadro Geral de Frequência</h2>
+                <h2>Quadro Geral de Frequência e Status (Planilha Editável)</h2>
                 <div class="table-responsive">
                     <table id="tabela-painel-geral">
                         <thead>
@@ -240,8 +218,8 @@
                                 <th>Nome do Funcionário</th>
                                 <th>Cargo</th>
                                 <th>Canteiro Vinculado</th>
-                                <th>Total de Batidas</th>
-                                <th>Último Registro</th>
+                                <th>Dias Trabalhados</th>
+                                <th>Última Atividade</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-geral"></tbody>
@@ -254,16 +232,21 @@
         <section id="aba-fichas-efetivo" class="tab-content">
             <div class="header-actions">
                 <h1><i class="fa-solid fa-id-card" style="color:var(--accent-orange);"></i> Fichas do Efetivo Operacional</h1>
+                <div class="sheet-tools">
+                    <button class="btn-tool btn-excel" onclick="exportarTabelaParaExcel('tabela-fichas-efetivo', 'Fichas_Efetivo')"><i class="fa-solid fa-file-excel"></i> Baixar Planilha Excel</button>
+                    <button class="btn-tool" onclick="imprimirAba()"><i class="fa-solid fa-print"></i> Imprimir / PDF</button>
+                </div>
             </div>
             <div class="box-container">
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Clique na linha de qualquer operário da planilha para inspecionar a Ficha Cadastral com foto do ponto.</p>
                 <div class="table-responsive">
                     <table id="tabela-fichas-efetivo">
                         <thead>
                             <tr>
                                 <th>Nome</th>
                                 <th>Cargo</th>
-                                <th>Total Batidas</th>
-                                <th>Status Cadastral</th>
+                                <th>Frequência</th>
+                                <th>Status Recente</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-fichas"></tbody>
@@ -276,10 +259,14 @@
         <section id="aba-frentes-trabalho" class="tab-content">
             <div class="header-actions">
                 <h1><i class="fa-solid fa-map-location-dot" style="color:var(--neon-green);"></i> Controle por Canteiro</h1>
+                <div class="sheet-tools">
+                    <button class="btn-tool btn-excel" onclick="exportarTabelaParaExcel('tabela-frentes-obra', 'Frentes_Obra_Filtro')"><i class="fa-solid fa-file-excel"></i> Baixar Planilha Excel</button>
+                    <button class="btn-tool" onclick="imprimirAba()"><i class="fa-solid fa-print"></i> Imprimir / PDF</button>
+                </div>
             </div>
             <div class="box-container">
                 <div class="form-group">
-                    <label>Filtrar Exibição por Canteiro:</label>
+                    <label>FILTRAR EXIBIÇÃO POR CANTEIRO:</label>
                     <select id="filtro-obra-analise" onchange="renderizarProducaoPorObra()"></select>
                 </div>
             </div>
@@ -291,20 +278,19 @@
                             <tr>
                                 <th>Funcionário</th>
                                 <th>Cargo</th>
-                                <th>Batidas no Sistema</th>
-                                <th>Último Status</th>
+                                <th>Presenças</th>
+                                <th>Desempenho</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-por-obra"></tbody>
                     </table>
                 </div>
             </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                 <div class="box-container">
                     <h3><i class="fa-solid fa-user-plus"></i> Inserir Operário</h3><br>
                     <form id="form-add-funcionario">
-                        <div class="form-group"><label>Nome Exato:</label><input type="text" id="func-nome" placeholder="Igual ao digitado no celular" required></div>
+                        <div class="form-group"><label>Nome:</label><input type="text" id="func-nome" required></div>
                         <div class="form-group"><label>Cargo:</label><input type="text" id="func-cargo" required></div>
                         <div class="form-group"><label>Obra:</label><select id="func-obra-inicial"></select></div>
                         <button type="submit" class="btn-principal" style="background-color: var(--neon-blue);">Salvar</button>
@@ -314,104 +300,9 @@
                     <h3><i class="fa-solid fa-square-plus"></i> Inserir Canteiro</h3><br>
                     <form id="form-add-obra">
                         <div class="form-group"><label>Nome da Obra:</label><input type="text" id="obra-nome" required></div>
-                        <div class="form-group"><label>Localização / CEP:</label><input type="text" id="obra-local" required></div>
+                        <div class="form-group"><label>Localização:</label><input type="text" id="obra-local" required></div>
                         <button type="submit" class="btn-principal" style="background-color: var(--neon-green);">Salvar</button>
                     </form>
                 </div>
             </div>
-        </section>
-
-        <!-- 5. ABA: LANÇAR PRODUÇÃO -->
-        <section id="aba-lancar-producao" class="tab-content">
-            <h1><i class="fa-solid fa-hammer" style="color:var(--accent-orange);"></i> Homologação de Metragens</h1>
-            <div class="box-container" style="max-width: 600px; margin-top:20px;">
-                <form id="form-producao">
-                    <div class="form-group"><label>Colaborador:</label><select id="prod-funcionario" required></select></div>
-                    <div class="form-group"><label>Volume Entregue:</label><input type="text" id="prod-quantidade" required></div><br>
-                    <button type="submit" class="btn-principal">Homologar Métricas</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- 6. ABA: LEITOR DE PROJETOS -->
-        <section id="aba-leitor-projetos" class="tab-content">
-            <h1><i class="fa-solid fa-folder-open" style="color:var(--neon-blue);"></i> Leitor de Plantas e Projetos</h1>
-            <input type="file" id="upload-pdf-projeto" accept="application/pdf, image/*" style="display: none;" onchange="carregarProjetoPlanta(event)">
-            <div class="box-container" style="margin-top:20px;">
-                <div id="dropzone-projeto" class="upload-dropzone" onclick="document.getElementById('upload-pdf-projeto').click()">
-                    <div id="preview-projeto-status">
-                        <i class="fa-solid fa-file-arrow-up" style="font-size: 54px; margin-bottom: 15px; color: var(--neon-blue);"></i>
-                        <p style="font-size: 16px; font-weight: 600;">Clique para procurar o projeto</p>
-                    </div>
-                    <iframe id="viewer-pdf-projeto" style="width: 100%; height: 600px; border: none; display: none;"></iframe>
-                    <img id="viewer-img-projeto" style="max-width: 100%; max-height: 600px; display: none; border-radius: 8px;">
-                </div>
-            </div>
-        </section>
-
-        <!-- ⚙️ 7. NOVA ABA: SEÇÃO EXCLUSIVA DE CONFIGURAÇÕES NO PAINEL -->
-        <section id="aba-configuracoes-app" class="tab-content">
-            <h1><i class="fa-solid fa-gear" style="color:var(--accent-orange);"></i> Configurações do Aplicativo</h1>
-            
-            <div class="box-container" style="margin-top: 20px;">
-                <h2>Identidade e Logotipo</h2><br>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
-                    <div class="form-group">
-                        <label>Alterar por URL da Imagem:</label>
-                        <input type="text" id="config-logo-url" placeholder="Cole o link da imagem (https://...)" onchange="salvarLogoAdmin(this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Selecionar Foto (Galeria do Celular ou Computador):</label>
-                        <!-- O input do tipo file modificado para capturar arquivos de mídia locais -->
-                        <input type="file" id="config-logo-file" accept="image/*" onchange="carregarLogoArquivoAdmin(event)">
-                    </div>
-                </div>
-                <button class="btn-tool" style="margin-top: 20px;" onclick="restaurarLogoPadrao()">
-                    <i class="fa-solid fa-rotate-left"></i> Restaurar Logo Padrão
-                </button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- 🎭 MODAL CAPTURA DE FOTO -->
-    <div id="modal-ponto" class="modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-ponto-titulo">Registrar Ponto</h3>
-                <button class="modal-close" onclick="fecharModalPonto()">&times;</button>
-            </div>
-            <div class="video-wrapper"><video id="ponto-video" autoplay playsinline></video></div>
-            <div id="modal-ponto-gps" class="gps-box">📡 Sintonizando localização...</div>
-            <div class="modal-footer" style="display:flex; gap:10px;">
-                <button class="btn-principal" onclick="fecharModalPonto()" style="background:#323238; color:#fff;">Cancelar</button>
-                <button class="btn-principal" onclick="confirmarPontoPublico()" style="background-color: var(--neon-green);">Confirmar Batida</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🎭 MODAL: FICHA CADASTRAL -->
-    <div id="modal-ficha" class="modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="ficha-nome-titulo">Ficha Cadastral</h3>
-                <button class="modal-close" onclick="fecharModalFicha()">&times;</button>
-            </div>
-            <div class="ficha-corpo">
-                <div class="ficha-foto-container">
-                    <img id="ficha-foto-img" src="" alt="Foto do Ponto">
-                    <p id="ficha-sem-foto-txt" style="color: var(--text-muted); display:none; padding:20px; text-align:center;"><i class="fa-solid fa-camera" style="font-size:32px; margin-bottom:10px;"></i><br>Nenhuma foto capturada.</p>
-                </div>
-                <div class="ficha-dados" id="ficha-dados-texto"></div>
-                <div>
-                    <label style="margin-bottom:5px; display:block;">Histórico de Batidas Livres:</label>
-                    <div class="historico-pontos-box" id="ficha-historico-lista"></div>
-                </div>
-            </div>
-            <button class="btn-principal" onclick="window.print()" style="background-color:var(--neon-blue); color:#000;"><i class="fa-solid fa-print"></i> Imprimir</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+   
